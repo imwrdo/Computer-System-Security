@@ -1,0 +1,105 @@
+package org.example.Classes.Encryption;
+
+import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.StampingProperties;
+import com.itextpdf.signatures.*;
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.cms.*;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Store;
+import com.itextpdf.signatures.BouncyCastleDigest;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+
+
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+public class SignatureManager {
+    static {
+
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
+    public void SignPDF(File filePDF, PrivateKey privateRSA, PublicKey publicRSA) throws Exception {
+        String outName = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf(".")) + "_signed.pdf";
+        // Create a PdfReader and PdfStamper
+        PdfReader reader = new PdfReader(filePDF.getAbsolutePath());
+        FileOutputStream fos = new FileOutputStream(outName);
+        StampingProperties stampingProperties = new StampingProperties();
+
+        // Create PdfSigner instance with StampingProperties and OutputStream
+        PdfSigner signer = new PdfSigner(reader, fos, stampingProperties);
+
+        // Set signature appearance
+        PdfSignatureAppearance appearance = signer.getSignatureAppearance()
+                .setReason("Document Signature")
+                .setLocation("Location")
+                .setSignatureCreator("Private Key Holder");
+
+        // Set up the private key signature (using PrivateKeySignature instead of ExternalSignature)
+        PrivateKeySignature privateKeySignature = new PrivateKeySignature(privateRSA, "SHA-256", "BC");
+
+        IExternalDigest digest = new BouncyCastleDigest();
+
+        java.security.cert.Certificate[] chain = new java.security.cert.Certificate[1];
+        X509Certificate dummyCert = generateDummyCertificate(privateRSA, publicRSA);
+        chain[0] = dummyCert;
+
+        // Sign the document with null for the certificate chain
+        signer.signDetached(digest, privateKeySignature, chain, null, null, null, 0, PdfSigner.CryptoStandard.CMS);
+
+        System.out.println("PDF signed successfully!");
+
+
+    }
+    private static X509Certificate generateDummyCertificate(PrivateKey privateKey, PublicKey publicKey) throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
+
+        // Set up the certificate generator
+        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
+        certGen.setSerialNumber(new java.math.BigInteger("123456"));
+        certGen.setIssuerDN(new javax.security.auth.x500.X500Principal("CN=Dummy Certificate"));
+        certGen.setSubjectDN(new javax.security.auth.x500.X500Principal("CN=Dummy Certificate"));
+        certGen.setNotBefore(new Date(System.currentTimeMillis() - 10000L));
+        certGen.setPublicKey(publicKey);
+        certGen.setNotAfter(new Date(System.currentTimeMillis() + 10000L * 60 * 60 * 24)); // valid for 1 day
+        certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
+
+        // Generate the certificate
+        return certGen.generate(privateKey, "BC");
+    }
+
+    public static boolean VerifyPDF(String signedPdfPath) {
+        try {
+            // Open the signed PDF
+            PdfReader reader = new PdfReader(signedPdfPath);
+
+            // Verify the signature
+            PdfVerifier verifier = new PdfVerifier(reader);
+            PdfSignature signature = verifier.getSignature(0); // Assuming there is one signature, index 0
+
+            // If the verification is successful, it will return true
+            boolean isValid = verifier.verify(signature);
+
+            if (isValid) {
+                System.out.println("Signature is valid.");
+            } else {
+                System.out.println("Signature is invalid.");
+            }
+
+            return isValid;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+}

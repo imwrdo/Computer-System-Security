@@ -1,0 +1,145 @@
+package org.example.Classes.Encryption;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.ExternalSigningSupport;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+
+import javax.crypto.Cipher;
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertSelector;
+import java.security.cert.CertStore;
+import java.security.cert.X509Certificate;
+import java.util.*;
+
+public class SignatureManager implements SignatureInterface {
+    private PrivateKey privateKey;
+
+    public byte[] GetHash(InputStream someData) throws Exception {
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        byte[] buffer = new byte[1024];
+
+        while(someData.read(buffer) != -1){
+            messageDigest.update(buffer);
+        }
+
+        return messageDigest.digest();
+    }
+
+    public void SignPDF(File filePDF, PrivateKey privateRSA) throws Exception {
+        privateKey = privateRSA;
+        String outName = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf(".")) + "_signed.pdf";
+        try (PDDocument document = PDDocument.load(filePDF); OutputStream out = new FileOutputStream(outName)) {
+            PDSignature signature = new PDSignature();
+            signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
+            signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
+            signature.setName("Private Key Holder");
+            signature.setLocation("Gdansk University of Technology, Gdsnsk");
+            signature.setReason("Project needs");
+
+            // the signing date, needed for valid signature
+            signature.setSignDate(Calendar.getInstance());
+            SignatureOptions opts = new SignatureOptions();
+            opts.setPreferredSignatureSize(SignatureOptions.DEFAULT_SIGNATURE_SIZE);
+            document.addSignature(signature, this, opts);
+
+            // Save the signed document to a file
+            document.saveIncremental(new FileOutputStream(outName));
+            System.out.println(document.getSignatureDictionaries().getFirst().getCOSObject());
+            document.close();
+            System.out.println("Signed!");
+        }
+    }
+
+
+    @Override
+    public byte[] sign(InputStream content) throws IOException {
+        System.out.println("HELL()");
+        try {
+            // Step 1: Hash the content (e.g., using SHA-256)
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            byte[] buffer = content.readAllBytes();
+
+            while(content.read(buffer) != -1){
+                messageDigest.update(buffer);
+            }
+
+            byte[] documentHash = messageDigest.digest(); // Final hash (digest) of the content
+            System.out.println("Document hash length: " + documentHash.length);
+
+            // Step 2: Sign the hash with your private key
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initSign(privateKey);
+            signature.update(documentHash); // Update the signature with the hashed content
+
+            byte[] tmp = signature.sign();
+
+            System.out.println(Arrays.toString(tmp));
+
+            return tmp; // Return the signed hash (digital signature)
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new IOException("Error signing document", e);
+        }
+    }
+
+    public boolean VerifyPDF(File filePDF, PublicKey publicRSA) throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
+        PDDocument document = PDDocument.load(filePDF);
+        // Extract the signature
+        PDSignature signature = document.getLastSignatureDictionary();
+
+        byte[] signedData = signature.getSignedContent(new FileInputStream(filePDF));
+        //System.out.println("First 50 bytes of signedData: " + Arrays.toString(Arrays.copyOf(signedData, 50)));
+
+        // Step 2: Extract the cryptographic signature itself (actual signature bytes)
+        byte[] signatureBytes = signature.getContents();
+
+        // Print out the first few bytes of the signature for inspection (debugging)
+        //System.out.println("First 50 bytes of signatureBytes: " + Arrays.toString(Arrays.copyOf(signatureBytes, 50)));
+
+
+        //System.out.println(signedData.length + " " + signatureBytes.length);
+
+        // Use the public key to verify the signature
+        Signature sig = Signature.getInstance("SHA256withRSA");
+
+        sig.initVerify(publicRSA);
+
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+
+
+        byte[] documentHash = messageDigest.digest(signedData); // Final hash (digest) of the content
+
+        sig.update(documentHash);
+        boolean isVerified = sig.verify(Arrays.copyOfRange(signatureBytes, 0, 512));
+
+        System.out.println(Arrays.toString(Arrays.copyOfRange(signatureBytes, 0, 512)));
+
+        document.close();
+
+        System.out.println(isVerified);
+
+        //return isVerified;
+
+            System.out.println("Signature " + (1) + ": ");
+            System.out.println("Name: " + signature.getName());
+            System.out.println("Location: " + signature.getLocation());
+            System.out.println("Reason: " + signature.getReason());
+
+            // Extract raw signature content (byte array)
+            byte[] signatureContent = signature.getContents();
+
+            // Debug: Print out the raw signature content in hexadecimal form
+            System.out.println("Raw signature content (hex): ");
+            for (byte b : signatureContent) {
+                System.out.format("%02x ", b);
+            }
+            System.out.println();
+            return isVerified;
+    }
+}

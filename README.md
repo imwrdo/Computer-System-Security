@@ -5,7 +5,7 @@
 
 The PAdES Electronic Signature Tool is a Java Swing application designed to create qualified electronic signatures following the PAdES (PDF Advanced Electronic Signature) standard. This tool ensures secure handling of RSA key pairs, encrypting the private key with AES for storage on a hardware device (pendrive).
 
-![Fig. 1 – Block diagram of the project concept.](#)
+
 
 ## ✨ Features
 

@@ -1,11 +1,11 @@
 package org.example;
 
 import org.example.Classes.CryptoPart.CryptoMainWindow;
-import org.example.Classes.CryptoPart.PDFCryptoWindow;
 
 import javax.swing.*;
 
 public class Crypto_Main {
+
     public static void main(String[] args) {
         System.out.println("Hello world!");
         CryptoMainWindow cryptoWindow = new CryptoMainWindow();

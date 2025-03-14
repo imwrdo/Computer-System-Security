@@ -9,6 +9,7 @@ import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -25,17 +26,23 @@ public class KeyGeneratorBody {
     };
 
     private void WriteToFile(byte[] key, String filename) throws Exception {
-        FileOutputStream out = new FileOutputStream(filename);
-        //System.out.println(Base64.getEncoder().encodeToString(key));
-        out.write(key);
-        out.close();
+        try(OutputStream out = new FileOutputStream(filename)){
+            //System.out.println(Base64.getEncoder().encodeToString(key));
+            out.write(key);
+            out.close();
+        }
+        catch(java.io.IOException e) {
+            throw new RuntimeException("Error during the key generation process! " +
+                    "Ensure that you've chosen the correct key locations and have the rights" +
+                    " to write to this locations!", e);
+        }
     }
 
-    public void GeneratePair(String pin, String privatePath, String publicPath) throws Exception {
+    public void GeneratePair(String pin, String privatePath, String publicPath, String keyFileName) throws Exception {
         SecretKey passwordKey = aesCry.GetKey(pin, 65536, 256, "UTF-8");
         KeyPair rsaPair = rasCry.GetPair(keyLength);
         WriteToFile(aesCry.Encrypt(rsaPair.getPrivate().getEncoded(), passwordKey),
-                privatePath + "\\privateKey");
+                privatePath + "\\" + keyFileName);
         WriteToFile(rsaPair.getPublic().getEncoded(), publicPath + "\\publicKey");
         System.out.println("Generated");
     }
@@ -79,19 +86,4 @@ public class KeyGeneratorBody {
         }
     }
 
-
-
-    public void VerifyPDF(File file) throws Exception {
-
-        try(FileInputStream keyStream = new FileInputStream("publicKey")) {
-            PublicKey publicRSA = GetPublicKey();
-            //System.out.println(publicRSA);
-            if(signatureManager.VerifyPDF(file, publicRSA))
-                System.out.println("Everything is OK!");
-            else
-                System.out.println("Something went wrong");
-        }
-        // Get the PublicKey from the byte array
-
-    }
 }

@@ -26,10 +26,10 @@ public class SignatureManager implements SignatureInterface {
             digest.update(contentBytes);
         }
 
-        return digest.digest() ;
+        return digest.digest();
     }
 
-    public void SignPDF(String origPath, String signedPath, PrivateKey privateRSA, PublicKey publicRSA) throws Exception {
+    public boolean SignPDF(String origPath, String signedPath, PrivateKey privateRSA) throws Exception {
         privateKey = privateRSA;
         File filePDF = new File(origPath);
         String outName = signedPath;
@@ -46,15 +46,35 @@ public class SignatureManager implements SignatureInterface {
             signature.setSignDate(Calendar.getInstance());
             SignatureOptions opts = new SignatureOptions();
             opts.setPreferredSignatureSize(SignatureOptions.DEFAULT_SIGNATURE_SIZE);
-            document.addSignature(signature, this, opts);
+            try{
+                document.addSignature(signature, this, opts);
+            }
+            catch(java.io.IOException e) {
+                throw new RuntimeException("Error during the signing process! The program" +
+                        " couldn't create signature correctly. Please, " +
+                        "report this problem to the producer of application!", e);
+            }
 
             // Save the signed document to a file
-            document.saveIncremental(new FileOutputStream(outName));
+            document.saveIncremental(out);
 
             document.close();
             System.out.println("Signed!");
+
+            KillOneByte(new File(outName));
+
+            return true;
         }
-        KillOneByte(new File(outName));
+        catch(java.io.IOException e) {
+            throw new RuntimeException("\"Error during the signing process! Ensure that the folder" +
+                    "you've chosen to read document from exists and you " +
+                    "have the necessary rights to read the file!", e);
+        }
+        catch(SecurityException e) {
+            throw new RuntimeException("\"Error during the signing process! Ensure that the folder" +
+                    "you've chosen to save signed file into exists and you " +
+                    "have the necessary rights to create files there!", e);
+        }
     }
 
 
@@ -76,53 +96,62 @@ public class SignatureManager implements SignatureInterface {
             //System.out.println(Arrays.toString(documentHash));
 
             return tmp; // Return the signed hash (digital signature)
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new IOException("Error signing document", e);
+        }
+        catch(java.security.InvalidKeyException e) {
+            throw new RuntimeException("Incorrect PRIVATE key file! Ensure that your PRIVATE key file" +
+                    " is chosen correctly and exists!", e);
+        }
+        catch(java.security.SignatureException e) {
+            throw new RuntimeException("Error during the signing process! The program" +
+                    " couldn't create signature correctly. Please, " +
+                    "report this problem to the producer of application!", e);
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Unresolved error", e);
         }
     }
 
     public boolean VerifyPDF(File filePDF, PublicKey publicRSA) throws Exception {
-        PDDocument document = PDDocument.load(filePDF);
+        try(PDDocument document = PDDocument.load(filePDF)) {
 
-        // Extract the signature
-        PDSignature signature = document.getLastSignatureDictionary();
+            // Extract the signature
+            try {
+                PDSignature signature = document.getLastSignatureDictionary();
+                byte[] signedData = signature.getSignedContent(new FileInputStream(filePDF));
+                // Step 2: Extract the cryptographic signature itself (actual signature bytes)
+                byte[] signatureBytes = signature.getContents();
 
-        byte[] signedData = signature.getSignedContent(new FileInputStream(filePDF));
-        // Step 2: Extract the cryptographic signature itself (actual signature bytes)
-        byte[] signatureBytes = signature.getContents();
+                // Use the public key to verify the signature
+                Signature sig = Signature.getInstance("SHA256withRSA");
+                sig.initVerify(publicRSA);
 
-        // Use the public key to verify the signature
-        Signature sig = Signature.getInstance("SHA256withRSA");
-        sig.initVerify(publicRSA);
+                byte[] documentHash = GetChosenHash(document);
 
-        byte[] documentHash = GetChosenHash(document);
+                sig.update(documentHash);
+                boolean isVerified = sig.verify(Arrays.copyOfRange(signatureBytes, 0, 512));
 
-        sig.update(documentHash);
-        boolean isVerified = sig.verify(Arrays.copyOfRange(signatureBytes, 0, 512));
+                document.close();
 
-        document.close();
-
-        //System.out.println(Arrays.toString(documentHash));
-
-        //System.out.println(isVerified);
-
-        /*System.out.println("Signature " + (1) + ": ");
-        System.out.println("Name: " + signature.getName());
-        System.out.println("Location: " + signature.getLocation());
-        System.out.println("Reason: " + signature.getReason());
-
-        // Extract raw signature content (byte array)
-        byte[] signatureContent = signature.getContents();
-
-        // Debug: Print out the raw signature content in hexadecimal form
-        System.out.println("Raw signature content (hex): ");
-        for (byte b : signatureContent) {
-            System.out.format("%02x ", b);
+                return isVerified;
+            }
+            catch(java.io.IOException e) {
+                throw new RuntimeException("Error during the verification process! Probably" +
+                        "that document wasn't signed!", e);
+            }
+            catch(java.security.InvalidKeyException e) {
+                throw new RuntimeException("Incorrect PUBLIC key file! Ensure that your PUBLIC key file" +
+                        " is chosen correctly and exists", e);
+            }
+            catch(java.security.SignatureException e) {
+                throw new RuntimeException("Error during the verification process! The program" +
+                        " couldn't create signature correctly. Please, " +
+                        "report this problem to the producer of application", e);
+            }
         }
-        System.out.println();*/
-
-        return isVerified;
+        catch(java.io.IOException e) {
+            throw new RuntimeException("Cannot load chosen file! Ensure that the" +
+                    "file was chosen correctly and exists", e);
+        }
     }
 
     public void KillOneByte(File filePDF) throws Exception{

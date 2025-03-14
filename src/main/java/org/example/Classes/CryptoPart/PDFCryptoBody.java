@@ -4,6 +4,7 @@ package org.example.Classes.CryptoPart;
 import org.example.Classes.Encryption.AESCrypto;
 import org.example.Classes.Encryption.RSACrypto;
 import org.example.Classes.Encryption.SignatureManager;
+import org.example.Classes.USBSeeker.USBSeeker;
 
 import javax.crypto.SecretKey;
 import java.io.*;
@@ -17,8 +18,9 @@ public class PDFCryptoBody {
     private static AESCrypto aesCry = new AESCrypto("AES/CFB/NoPadding");
     private static RSACrypto rasCry = new RSACrypto();
     private static SignatureManager signatureManager = new SignatureManager();
+    private static USBSeeker usbSeeker = new USBSeeker();
 
-    public PDFCryptoBody(Integer keyLength) {
+    public PDFCryptoBody(Integer keyLength, String keyFileName) {
         this.keyLength = keyLength;
     };
 
@@ -34,7 +36,6 @@ public class PDFCryptoBody {
         KeyPair rsaPair = rasCry.GetPair(keyLength);
         //System.out.println(rsaPair.getPrivate());
         WriteToFile(aesCry.Encrypt(rsaPair.getPrivate().getEncoded(), passwordKey), "privateKey");
-        //WriteToFile(Base64.getEncoder().encodeToString(rsaPair.getPublic().getEncoded()), "publicKey");
         //System.out.println(Arrays.toString(rsaPair.getPublic().getEncoded()));
         WriteToFile(rsaPair.getPublic().getEncoded(), "publicKey");
         //System.out.println(rsaPair.getPublic());
@@ -43,80 +44,31 @@ public class PDFCryptoBody {
         //CheckKeys(rsaPair.getPrivate(), rsaPair.getPublic());
     }
 
-    public void CheckKeys(PrivateKey rsaPrivate, PublicKey rsaPublic) throws Exception {
-        String data = "This is some data to be signed.";
-        byte[] dataBytes = data.getBytes();
 
-        // Initialize the Signature object with the appropriate algorithm
-        Signature signature = Signature.getInstance("SHA256withRSA");
-        signature.initSign(rsaPrivate);
-        signature.update(dataBytes);
-
-        // Generate the signature
-        byte[] signatureBytes = signature.sign();
-
-        Signature signature2 = Signature.getInstance("SHA256withRSA");
-        signature2.initVerify(rsaPublic);
-        signature2.update(dataBytes);
-
-        System.out.println("The keys are right: " + signature2.verify(signatureBytes));
-
-    }
-
-    public PublicKey GetPublicKey() throws Exception {
-        try(FileInputStream keyStream = new FileInputStream("publicKey")) {
-            byte[] publicRSABytes = keyStream.readAllBytes();
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicRSABytes);
-            return keyFactory.generatePublic(keySpec);
-        }
-    }
-
-    public PrivateKey GetPrivateKey(String pin) throws Exception {
-        try(FileInputStream keyStream = new FileInputStream("privateKey")) {
+    public PrivateKey GetPrivateKey(String pin, String keyPath) throws Exception {
+        try(FileInputStream keyStream = new FileInputStream(keyPath)) {
             byte[] privateRSABytes = aesCry.Decrypt(keyStream.readAllBytes(),
                     aesCry.GetKey(pin, 65536, 256, "UTF-8"));
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateRSABytes);
-            return keyFactory.generatePrivate(keySpec);
+            PrivateKey ret = keyFactory.generatePrivate(keySpec);
+            return ret;
+        }
+        catch (java.io.FileNotFoundException e) {
+            throw new RuntimeException("The PENDRIVE with the PRIVATE KEY wasn't found! Ensure that " +
+                    "you have your pendrive inserted and have all the rights to read it!", e);
+        }
+        catch (java.security.spec.InvalidKeySpecException e) {
+            throw new RuntimeException("Wrong pin!", e);
         }
     }
 
-    public void SignPDF(String pin, String origPath, String signedPath) throws Exception {
-        File encryptedRSAKey = new File("privateKey");
-        /*try(FileInputStream keyStream = new FileInputStream(encryptedRSAKey)) {
-            byte[] privateRSABytes = aesCry.Decrypt(keyStream.readAllBytes(),
-                    aesCry.GetKey(pin, 65536, 256, "UTF-8"));
-            //System.out.println(Base64.getEncoder().encodeToString(privateRSABytes));
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-            // Create a PKCS8EncodedKeySpec using the byte array
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateRSABytes);
-
-            PrivateKey privateRSA = keyFactory.generatePrivate(keySpec);
-
-
-            //System.out.println("Private Key: " + privateRSA);
-
-            signatureManager.SignPDF(file, privateRSA);
-        }*/
-        PrivateKey privateRSA = GetPrivateKey(pin);
-        signatureManager.SignPDF(origPath, signedPath, privateRSA, GetPublicKey());
+    public String ScanForKey(String keyFileName) {
+        return usbSeeker.GetKeyPath(keyFileName);
     }
 
-
-
-    public void VerifyPDF(File file) throws Exception {
-
-        try(FileInputStream keyStream = new FileInputStream("publicKey")) {
-            PublicKey publicRSA = GetPublicKey();
-            //System.out.println(publicRSA);
-            if(signatureManager.VerifyPDF(file, publicRSA))
-                System.out.println("Everything is OK!");
-            else
-                System.out.println("Something went wrong");
-        }
-        // Get the PublicKey from the byte array
-
+    public boolean SignPDF(String pin, String origPath, String signedPath, String keyPath) throws Exception {
+        PrivateKey privateRSA = GetPrivateKey(pin, keyPath);
+        return signatureManager.SignPDF(origPath, signedPath, privateRSA);
     }
 }

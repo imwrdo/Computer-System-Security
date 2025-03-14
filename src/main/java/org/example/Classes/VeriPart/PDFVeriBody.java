@@ -1,16 +1,10 @@
 package org.example.Classes.VeriPart;
 
-
-import org.example.Classes.Encryption.AESCrypto;
-import org.example.Classes.Encryption.RSACrypto;
 import org.example.Classes.Encryption.SignatureManager;
 
-import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 public class PDFVeriBody {
@@ -36,24 +30,30 @@ public class PDFVeriBody {
 
     }
 
-    public PublicKey GetPublicKey() throws Exception {
-        try(FileInputStream keyStream = new FileInputStream("publicKey")) {
-            byte[] publicRSABytes = keyStream.readAllBytes();
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicRSABytes);
-            return keyFactory.generatePublic(keySpec);
-        }
+    public PublicKey GetPublicKey(FileInputStream keyStream) throws Exception {
+        byte[] publicRSABytes = keyStream.readAllBytes();
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicRSABytes);
+        return keyFactory.generatePublic(keySpec);
     }
 
-    public void VerifyPDF(File file) throws Exception {
+    public boolean VerifyPDF(File file) throws Exception {
 
         try(FileInputStream keyStream = new FileInputStream("publicKey")) {
-            PublicKey publicRSA = GetPublicKey();
+            PublicKey publicRSA = GetPublicKey(keyStream);
             //System.out.println(publicRSA);
-            if(signatureManager.VerifyPDF(file, publicRSA))
+            boolean something = signatureManager.VerifyPDF(file, publicRSA);
+            if(something)
                 System.out.println("Everything is OK!");
             else
                 System.out.println("Something went wrong");
+
+            return something;
+        }
+        catch(java.io.FileNotFoundException e) {
+            throw new RuntimeException("Error during the verification process! Ensure that" +
+                    " the folder you try to save file into exists and you have " +
+                    "all the rights needed to save files there!", e);
         }
         // Get the PublicKey from the byte array
 

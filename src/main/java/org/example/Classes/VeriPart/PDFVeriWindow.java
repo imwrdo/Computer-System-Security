@@ -4,10 +4,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Objects;
 
 public class PDFVeriWindow extends JFrame {
     private final PDFVeriBody veriBody = new PDFVeriBody();
@@ -34,9 +31,9 @@ public class PDFVeriWindow extends JFrame {
         JButton verifyButton = new JButton("Verify document");
 
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
-        Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(img);
-        JLabel helpLabel = new JLabel(scaledIcon);
+        //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        //ImageIcon scaledIcon = new ImageIcon(img);
+        JLabel helpLabel = new JLabel(questionIcon);
 
         this.resultLabel = new JLabel();
 

@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class USBSeeker {
-
+    private final static String OSNAME = System.getProperty("os.name").toLowerCase();
     private List<String> forWin = new LinkedList<>();
     private void CreateWinList() {
         try {
@@ -44,7 +46,21 @@ public class USBSeeker {
             } else if (os.contains("mac")) {
                 File volumesDir = new File("/Volumes");
                 if (volumesDir.exists() && volumesDir.canRead()) {
-                    return root.getAbsolutePath().startsWith("/Volumes");
+                    try {
+                        String canonicalPath = root.getCanonicalPath();
+                        System.out.println(canonicalPath);
+                        System.out.println(volumesDir);
+                        for (File volume : volumesDir.listFiles()) {
+                            System.out.println(volume);
+                            if (!volume.toString().equals("Macintosh HD")
+                                    || !volume.toString().equals("Recovery")
+                                    || !volume.toString().equals("/")) {
+                                return true;
+                            }
+                        }
+                    } catch (IOException | NullPointerException e) {
+                        e.printStackTrace();
+                    }
                 }
             } else if (os.contains("nux") || os.contains("nix")) {
                 File mediaDir = new File("/media");
@@ -56,24 +72,56 @@ public class USBSeeker {
             return false;
     }
 
-    private List<File> FindUSBs() {
+    public List<File> FindUSBs() {
+        String os = System.getProperty("os.name").toLowerCase();
+        System.out.println("OS name: " + os);
+
         File[] roots = File.listRoots();
+        System.out.println("Roots in find USBs:" + Arrays.toString(roots));
 
         List<File> ret = new LinkedList<>();
-
-        for(File root : roots) {
-            if(CheckIfUSB(root))
-                ret.add(root);
+        if(os.contains("mac")){
+            System.out.println("Mac OS detected");
+            File volumesDir = new File("/Volumes");
+            if(volumesDir.exists() && volumesDir.canRead()) {
+                System.out.println("Volumes dir exists: " + volumesDir);
+                for(File volume : Objects.requireNonNull(volumesDir.listFiles())) {
+                    if(!volume.toString().equals("/Volumes/Macintosh HD")
+                            && !volume.toString().equals("/Volumes/Recovery")
+                            && !volume.toString().equals("/")) {
+                        System.out.println("Add USB: " + volume);
+                        ret.add(volume);
+                        System.out.println("Ret after addition: " + ret);
+                    }
+                }
+            }
+        }else{
+            System.out.println("Not Mac OS");
+            for(File root : roots) {
+                if(CheckIfUSB(root)) {
+                    System.out.println("USB: " + root);
+                    ret.add(root);
+                }
+            }
         }
 
         return ret;
     }
 
     public String GetKeyPath(String keyFileName) {
+        System.out.println("Key file name: " + keyFileName);
         List<File> pendrives = FindUSBs();
         for(File root : pendrives) {
-            if(Files.exists(Path.of(root.getAbsolutePath().concat(keyFileName))))
+            if(Files.exists(Path.of(root.getAbsolutePath().concat(keyFileName)))){
+                System.out.println("Key found: " + root.getAbsolutePath() + keyFileName);
                 return root.getAbsolutePath() + keyFileName;
+            }
+            if(OSNAME.contains("mac")
+                    && Files.exists(root.toPath().resolve("privateKey"))) {
+                System.out.println("Key found: " + root.getAbsolutePath() +"/"+ keyFileName);
+                return root.getAbsolutePath() +"/"+ keyFileName;
+            }
+
         }
         return "None";
     }

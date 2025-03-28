@@ -28,9 +28,9 @@ public class CryptoMainWindow extends JFrame {
         JButton pdfButton = new JButton("Sign a document");
 
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
-        Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(img);
-        JLabel helpLabel = new JLabel(scaledIcon);
+        //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        //ImageIcon scaledIcon = new ImageIcon(img);
+        JLabel helpLabel = new JLabel(questionIcon);
 
         title.setPreferredSize(new Dimension(600, 120));
         title.setHorizontalAlignment(SwingConstants.CENTER);

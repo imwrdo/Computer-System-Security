@@ -36,9 +36,9 @@ public class KeyGeneratorWindow extends JPanel {
         JButton generateButton = new JButton("Generate key pair");
 
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
-        Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(img);
-        JLabel helpLabel = new JLabel(scaledIcon);
+        //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        //ImageIcon scaledIcon = new ImageIcon(questionIcon);
+        JLabel helpLabel = new JLabel(questionIcon);
 
         this.resultLabel = new JLabel();
 

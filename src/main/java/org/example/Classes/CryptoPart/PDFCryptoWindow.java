@@ -39,9 +39,9 @@ public class PDFCryptoWindow extends JPanel {
         JButton changeSigned = new JButton("Change Signed Location");
 
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
-        Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(img);
-        JLabel helpLabel = new JLabel(scaledIcon);
+        //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+        //ImageIcon scaledIcon = new ImageIcon(img);
+        JLabel helpLabel = new JLabel(questionIcon);
 
         this.resultLabel = new JLabel();
         this.keyLabel = new JLabel(keyPath);

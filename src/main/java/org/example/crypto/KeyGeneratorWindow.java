@@ -5,7 +5,7 @@ import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
 
-public class keyGeneratorWindow extends JPanel {
+public class KeyGeneratorWindow extends JPanel {
 
     private final  KeyGeneratorBody keyGeneratorBody = new KeyGeneratorBody(4096);
 
@@ -20,7 +20,7 @@ public class keyGeneratorWindow extends JPanel {
     private String privatePath;
     private String publicPath;
 
-    public keyGeneratorWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
+    public KeyGeneratorWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
         this.cardPanel = cardPanel;

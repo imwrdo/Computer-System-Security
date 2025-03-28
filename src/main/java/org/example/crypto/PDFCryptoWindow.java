@@ -7,7 +7,7 @@ import java.awt.*;
 import java.io.File;
 import java.util.Objects;
 
-public class initPDFCryptoWindow extends JPanel {
+public class PDFCryptoWindow extends JPanel {
 
     private final PDFCryptoBody pdfCrypto;
     private final String keyFileName;
@@ -23,7 +23,7 @@ public class initPDFCryptoWindow extends JPanel {
     private String keyPath = "None";
     private JLabel keyLabel;
 
-    public initPDFCryptoWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
+    public PDFCryptoWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
         this.cardPanel = cardPanel;

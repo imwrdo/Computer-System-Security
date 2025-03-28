@@ -9,8 +9,8 @@ public class CryptoMainWindow extends JFrame {
     private final CardLayout cardLayout = new CardLayout();
     private final JPanel cardPanel = new JPanel(cardLayout);
     private final String privateFileName = "privateKey";
-    private final keyGeneratorWindow keyWindow = new keyGeneratorWindow(cardLayout, cardPanel, privateFileName);
-    private final initPDFCryptoWindow pdfWindow = new initPDFCryptoWindow(cardLayout, cardPanel, privateFileName);
+    private final KeyGeneratorWindow keyWindow = new KeyGeneratorWindow(cardLayout, cardPanel, privateFileName);
+    private final PDFCryptoWindow pdfWindow = new PDFCryptoWindow(cardLayout, cardPanel, privateFileName);
 
     public CryptoMainWindow() {
 

@@ -1,4 +1,4 @@
-package org.example.Classes.CryptoPart;
+package org.example.crypto;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -7,26 +7,23 @@ import java.awt.*;
 import java.io.File;
 import java.util.Objects;
 
-public class PDFCryptoWindow extends JPanel {
+public class initPDFCryptoWindow extends JPanel {
 
-    private PDFCryptoBody pdfCrypto;
-
-    private JPasswordField passwordField;
+    private final PDFCryptoBody pdfCrypto;
+    private final String keyFileName;
+    private final JPasswordField passwordField;
     private final CardLayout parentLayout;
     private final JPanel cardPanel;
-    private String origPath;
-    private String signedPath;
     private final JLabel origInfo = new JLabel("None");
     private final JLabel signedInfo = new JLabel("None");
-    private JLabel resultLabel;
+    private final JLabel resultLabel;
 
+    private String origPath;
+    private String signedPath;
     private String keyPath = "None";
     private JLabel keyLabel;
 
-    private String keyFileName;
-
-
-    public PDFCryptoWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
+    public initPDFCryptoWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
         this.cardPanel = cardPanel;
@@ -79,14 +76,14 @@ public class PDFCryptoWindow extends JPanel {
         signButton.setPreferredSize(new Dimension(200, 20));
         signButton.addActionListener(e -> {
             try {
-                CheckKeyAndSign();
+                checkKeyAndSign();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
         });
 
-        changeOrig.addActionListener(e -> ChoosePath("Original"));
-        changeSigned.addActionListener(e -> ChoosePath("Signed"));
+        changeOrig.addActionListener(e -> choosePath("Original"));
+        changeSigned.addActionListener(e -> choosePath("Signed"));
 
         helpLabel.setPreferredSize(new Dimension(580, 20));
         helpLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -100,7 +97,7 @@ public class PDFCryptoWindow extends JPanel {
         JPanel tmpPan = new JPanel();
         tmpPan.add(backButton);
 
-        backButton.addActionListener(e -> ReturnToMainPage());
+        backButton.addActionListener(e -> returnToMainPage());
 
         origPath = signedPath = "None";
 
@@ -118,7 +115,7 @@ public class PDFCryptoWindow extends JPanel {
         JButton keyButton = new JButton("Scan for private key");
         keyButton.setPreferredSize(new Dimension(250, 25));
 
-        keyButton.addActionListener(e -> TryToFindKey());
+        keyButton.addActionListener(e -> tryToFindKey());
 
         keyPanel.add(keyPane);
         keyPanel.add(keyButton);
@@ -141,7 +138,7 @@ public class PDFCryptoWindow extends JPanel {
         this.pdfCrypto = new PDFCryptoBody(4096, keyFileName);
     }
 
-    private void ChoosePath(String type) {
+    private void choosePath(String type) {
         JFileChooser fileChooser = new JFileChooser();
         if(type.equals("Original")) {
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -183,7 +180,7 @@ public class PDFCryptoWindow extends JPanel {
         }
     }
 
-    private void CheckKeyAndSign() throws Exception {
+    private void checkKeyAndSign() throws Exception {
         try {
             if(!keyPath.equals("None")) {
                 String pin = String.valueOf(passwordField.getPassword());
@@ -213,11 +210,11 @@ public class PDFCryptoWindow extends JPanel {
         }
     }
 
-    private void ReturnToMainPage() {
+    private void returnToMainPage() {
         parentLayout.show(cardPanel, "main");
     }
 
-    private void TryToFindKey() {
+    private void tryToFindKey() {
         keyPath = pdfCrypto.ScanForKey(keyFileName);
         keyLabel.setText(keyPath);
         if(keyPath.equals("None")) {

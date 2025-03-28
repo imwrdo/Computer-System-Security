@@ -1,4 +1,4 @@
-package org.example.Classes.VeriPart;
+package org.example.verify;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -6,14 +6,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 
-public class PDFVeriWindow extends JFrame {
-    private final PDFVeriBody veriBody = new PDFVeriBody();
-
+public class PDFVerifyWindow extends JFrame {
+    private final PDFVerifyBody verifyBody = new PDFVerifyBody();
     private final JLabel chosenDoc;
-    private String documentPath = null;
-    private JLabel resultLabel;
+    private final JLabel resultLabel;
 
-    public PDFVeriWindow() {
+    private String documentPath = null;
+
+    public PDFVerifyWindow() {
 
         ToolTipManager.sharedInstance().setInitialDelay(0);
         ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
@@ -56,12 +56,12 @@ public class PDFVeriWindow extends JFrame {
         scrollDoc.setPreferredSize(new Dimension(400, 75));
 
         changeDocButton.setPreferredSize(new Dimension(250, 20));
-        changeDocButton.addActionListener(e -> ChoosePDF());
+        changeDocButton.addActionListener(e -> choosePDF());
 
         verifyButton.setPreferredSize(new Dimension(250, 20));
         verifyButton.addActionListener(e -> {
             try {
-                VerifyDocument();
+                verifyDocument();
             } catch (Exception ex) {
                 throw new RuntimeException(ex);
             }
@@ -88,7 +88,7 @@ public class PDFVeriWindow extends JFrame {
         this.add(panel);
     }
 
-    private void ChoosePDF() {
+    private void choosePDF() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         fileChooser.setAcceptAllFileFilterUsed(false);
@@ -107,10 +107,10 @@ public class PDFVeriWindow extends JFrame {
         }
     }
 
-    private void VerifyDocument() throws Exception {
+    private void verifyDocument() throws Exception {
         try {
             if (documentPath != null) {
-                if (veriBody.VerifyPDF(new File(documentPath))) {
+                if (verifyBody.verifyPDF(new File(documentPath))) {
                     resultLabel.setForeground(Color.GREEN);
                     resultLabel.setText("Everything is OK!");
                 } else {

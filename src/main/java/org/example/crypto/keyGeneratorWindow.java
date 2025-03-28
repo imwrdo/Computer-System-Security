@@ -1,26 +1,26 @@
-package org.example.Classes.CryptoPart;
+package org.example.crypto;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
 
-public class KeyGeneratorWindow extends JPanel {
+public class keyGeneratorWindow extends JPanel {
 
-    final KeyGeneratorBody keyGenerator = new KeyGeneratorBody(4096);
+    private final  KeyGeneratorBody keyGeneratorBody = new KeyGeneratorBody(4096);
 
-    private JPasswordField passwordField;
+    private final JPasswordField passwordField;
     private final CardLayout parentLayout;
     private final JPanel cardPanel;
+    private final JLabel privateInfo;
+    private final JLabel publicInfo;
+    private final JLabel resultLabel;
+    private final String keyFileName;
+
     private String privatePath;
     private String publicPath;
-    private JLabel privateInfo;
-    private JLabel publicInfo;
 
-    private JLabel resultLabel;
-
-    private String keyFileName;
-    public KeyGeneratorWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
+    public keyGeneratorWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
         this.cardPanel = cardPanel;
@@ -74,8 +74,8 @@ public class KeyGeneratorWindow extends JPanel {
         passwordField.setPreferredSize(new Dimension(100, 20));
 
         generateButton.setPreferredSize(new Dimension(200, 20));
-        generateButton.addActionListener(e -> CheckPasswordAndRSA());
-        privatePlace.addActionListener(e -> ChoosePath("Private"));
+        generateButton.addActionListener(e -> checkPasswordAndRSA());
+        privatePlace.addActionListener(e -> choosePath("Private"));
         //publicPlace.addActionListener(e -> ChoosePath("Public"));
 
         privatePath = Paths.get(System.getProperty("user.home"), "Desktop").toString();
@@ -92,7 +92,7 @@ public class KeyGeneratorWindow extends JPanel {
         JPanel tmpPan = new JPanel();
         tmpPan.add(backButton);
 
-        backButton.addActionListener(e -> ReturnToMainPage());
+        backButton.addActionListener(e -> returnToMainPage());
 
         //fileChooser.getSelectedFile();
         this.add(title);
@@ -109,7 +109,7 @@ public class KeyGeneratorWindow extends JPanel {
         this.add(helpLabel);
     }
 
-    private void ChoosePath(String type) {
+    private void choosePath(String type) {
         JFileChooser fileChooser = new JFileChooser();
 
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -134,12 +134,12 @@ public class KeyGeneratorWindow extends JPanel {
         }
     }
 
-    private void CheckPasswordAndRSA() {
+    private void checkPasswordAndRSA() {
         String password = String.valueOf(passwordField.getPassword());
         System.out.println(password);
         if(password.length() == 8){
             try {
-                keyGenerator.GeneratePair(password, privatePath, publicPath, keyFileName);
+                keyGeneratorBody.generatePair(password, privatePath, publicPath, keyFileName);
                 passwordField.setText("");
                 resultLabel.setForeground(Color.GREEN);
                 resultLabel.setText("The RSA key pair was successfully generated!");
@@ -159,7 +159,7 @@ public class KeyGeneratorWindow extends JPanel {
         }
     }
 
-    private void ReturnToMainPage() {
+    private void returnToMainPage() {
         parentLayout.show(cardPanel, "main");
     }
 

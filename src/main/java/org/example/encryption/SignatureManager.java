@@ -1,7 +1,6 @@
-package org.example.Classes.Encryption;
+package org.example.encryption;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDStream;
@@ -17,7 +16,7 @@ public class SignatureManager implements SignatureInterface {
     private PrivateKey privateKey;
     private PDDocument doc;
 
-    public byte[] GetChosenHash(PDDocument document) throws Exception {
+    public byte[] getChosenHash(PDDocument document) throws Exception {
         PDPageTree pages = document.getPages();
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
@@ -29,11 +28,10 @@ public class SignatureManager implements SignatureInterface {
         return digest.digest();
     }
 
-    public boolean SignPDF(String origPath, String signedPath, PrivateKey privateRSA) throws Exception {
+    public boolean signPDF(String origPath, String signedPath, PrivateKey privateRSA) throws Exception {
         privateKey = privateRSA;
         File filePDF = new File(origPath);
-        String outName = signedPath;
-        try (PDDocument document = PDDocument.load(filePDF); OutputStream out = new FileOutputStream(outName)) {
+        try (PDDocument document = PDDocument.load(filePDF); OutputStream out = new FileOutputStream(signedPath)) {
             this.doc = document;
             PDSignature signature = new PDSignature();
             signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
@@ -61,7 +59,7 @@ public class SignatureManager implements SignatureInterface {
             document.close();
             System.out.println("Signed!");
 
-            KillOneByte(new File(outName));
+            changeOneByte(new File(signedPath));
 
             return true;
         }
@@ -82,7 +80,7 @@ public class SignatureManager implements SignatureInterface {
     public byte[] sign(InputStream content) throws IOException {
         try {
             // Step 1: Hash the content (e.g., using SHA-256)
-            byte[] documentHash = GetChosenHash(this.doc);
+            byte[] documentHash = getChosenHash(this.doc);
 
             // Step 2: Sign the hash with your private key
             Signature signature = Signature.getInstance("SHA256withRSA");
@@ -111,7 +109,7 @@ public class SignatureManager implements SignatureInterface {
         }
     }
 
-    public boolean VerifyPDF(File filePDF, PublicKey publicRSA) throws Exception {
+    public boolean verifyPDF(File filePDF, PublicKey publicRSA) throws Exception {
         try(PDDocument document = PDDocument.load(filePDF)) {
 
             // Extract the signature
@@ -125,7 +123,7 @@ public class SignatureManager implements SignatureInterface {
                 Signature sig = Signature.getInstance("SHA256withRSA");
                 sig.initVerify(publicRSA);
 
-                byte[] documentHash = GetChosenHash(document);
+                byte[] documentHash = getChosenHash(document);
 
                 sig.update(documentHash);
                 boolean isVerified = sig.verify(Arrays.copyOfRange(signatureBytes, 0, 512));
@@ -134,27 +132,27 @@ public class SignatureManager implements SignatureInterface {
 
                 return isVerified;
             }
-            catch(java.io.IOException e) {
+            catch(IOException e) {
                 throw new RuntimeException("Error during the verification process! Probably" +
                         "that document wasn't signed!", e);
             }
-            catch(java.security.InvalidKeyException e) {
+            catch(InvalidKeyException e) {
                 throw new RuntimeException("Incorrect PUBLIC key file! Ensure that your PUBLIC key file" +
                         " is chosen correctly and exists", e);
             }
-            catch(java.security.SignatureException e) {
+            catch(SignatureException e) {
                 throw new RuntimeException("Error during the verification process! The program" +
                         " couldn't create signature correctly. Please, " +
                         "report this problem to the producer of application", e);
             }
         }
-        catch(java.io.IOException e) {
+        catch(IOException e) {
             throw new RuntimeException("Cannot load chosen file! Ensure that the" +
                     "file was chosen correctly and exists", e);
         }
     }
 
-    public void KillOneByte(File filePDF) throws Exception{
+    public void changeOneByte(File filePDF) throws Exception{
         String corrFile = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf(".")) + "_corrupted.pdf";
         try(PDDocument document = PDDocument.load(filePDF); FileOutputStream corrPDF = new FileOutputStream(corrFile)) {
             Random rnd = new Random();

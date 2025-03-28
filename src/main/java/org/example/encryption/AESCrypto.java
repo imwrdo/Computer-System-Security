@@ -10,6 +10,9 @@ import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 
+/**
+ * AES Encryption/Decryption Utility with Secure IV Handling.
+ */
 public class AESCrypto {
     private static final String ALGORITHM = "AES";
     private static final String FACTORY_ALGORITHM = "PBKDF2WithHmacSHA256";
@@ -21,6 +24,14 @@ public class AESCrypto {
         this.iv = generateIv();
     }
 
+    /**
+     * Generates a SecretKey using PBKDF2 with HMAC-SHA256.
+     *
+     * @param pin        The password/PIN used for key derivation.
+     * @param iterations Number of PBKDF2 iterations.
+     * @param keyLength  Length of the key in bits (e.g., 256 for AES-256).
+     * @return Derived SecretKey.
+     */
     public SecretKey getKey(String pin, Integer iterations, Integer keyLength, String charSet) throws Exception {
         SecretKeyFactory factory = SecretKeyFactory.getInstance(FACTORY_ALGORITHM);
         KeySpec spec = new PBEKeySpec(pin.toCharArray(), pin.getBytes(charSet),
@@ -29,16 +40,31 @@ public class AESCrypto {
                 .getEncoded(), ALGORITHM);
     }
 
+    /**
+     * Generates a random IV.
+     *
+     * @return New IV as IvParameterSpec.
+     */
     public IvParameterSpec generateIv() {
         byte[] iv = new byte[16];
         new SecureRandom().nextBytes(iv);
         return new IvParameterSpec(iv);
     }
 
+    /**
+     * Restores a IV
+     */
     public void restoreIv(byte[] iv) {
         this.iv = new IvParameterSpec(iv);
     }
 
+    /**
+     * Encrypts data using AES with a unique IV.
+     *
+     * @param text The plaintext data.
+     * @param key  The AES secret key.
+     * @return IV + Encrypted data.
+     */
     public byte[] encrypt(byte[] text, SecretKey key) throws Exception {
         Cipher cipher = Cipher.getInstance(type);
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
@@ -51,6 +77,13 @@ public class AESCrypto {
         return ivAndEncryptedData;
     }
 
+    /**
+     * Decrypts AES-encrypted data.
+     *
+     * @param complexText The IV + Encrypted content.
+     * @param key           The AES secret key.
+     * @return Decrypted plaintext data.
+     */
     public byte[] decrypt(byte[] complexText, SecretKey key) throws Exception {
         System.out.println(Arrays.toString(iv.getIV()));
 

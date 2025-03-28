@@ -5,10 +5,16 @@ import java.awt.*;
 import java.io.File;
 import java.nio.file.Paths;
 
+/**
+ * KeyGeneratorWindow is a GUI panel for generating RSA key pairs.
+ * It allows users to choose storage locations for keys and input a PIN for encryption.
+ */
 public class KeyGeneratorWindow extends JPanel {
 
-    private final  KeyGeneratorBody keyGeneratorBody = new KeyGeneratorBody(4096);
+    // Key generation logic
+    private final KeyGeneratorBody keyGeneratorBody = new KeyGeneratorBody(4096);
 
+    // UI components
     private final JPasswordField passwordField;
     private final CardLayout parentLayout;
     private final JPanel cardPanel;
@@ -17,31 +23,40 @@ public class KeyGeneratorWindow extends JPanel {
     private final JLabel resultLabel;
     private final String keyFileName;
 
+    // Paths for storing generated keys
     private String privatePath;
     private String publicPath;
 
+    /**
+     * Constructor to initialize the key generator window.
+     * @param cardLayout Parent CardLayout for navigation.
+     * @param cardPanel Parent JPanel containing this window.
+     * @param keyFileName Name of the private key file.
+     */
     public KeyGeneratorWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
         this.cardPanel = cardPanel;
         this.keyFileName = keyFileName;
-        //this.setTitle("RSA Key Generator and PDF Signer");
+
+        // UI Components
         JLabel title = new JLabel("RSA Key Generator");
-        JLabel info = new JLabel("Choose the placement for generated keys AND enter the 8-DIGIT PIN to cipher it");
+        JLabel info = new JLabel("Choose the placement for generated keys AND enter an 8-DIGIT PIN to secure it.");
+
         privateInfo = new JLabel("Desktop");
         publicInfo = new JLabel("This Project Root Folder");
         passwordField = new JPasswordField();
+
         JButton privatePlace = new JButton("Change Private Location");
         JButton publicPlace = new JButton("Change Public Location");
         JButton generateButton = new JButton("Generate key pair");
 
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
-        //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
-        //ImageIcon scaledIcon = new ImageIcon(questionIcon);
         JLabel helpLabel = new JLabel(questionIcon);
 
         this.resultLabel = new JLabel();
 
+        // Configure UI Components
         title.setPreferredSize(new Dimension(600, 60));
         title.setFont(new Font("Arial", Font.BOLD, 20));
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -63,38 +78,36 @@ public class KeyGeneratorWindow extends JPanel {
         JScrollPane publicPane = new JScrollPane(publicInfo);
         publicPane.setPreferredSize(new Dimension(250, 75));
 
-
-
         privatePlace.setPreferredSize(new Dimension(250, 25));
         publicPlace.setPreferredSize(new Dimension(250, 25));
-        publicPlace.setToolTipText("This function didn't appear in the final version" +
-                " for this only brings up additional and unnecessary complications for testing");
 
+        publicPlace.setToolTipText("This function is disabled in the final version due to testing complications.");
 
         passwordField.setPreferredSize(new Dimension(100, 20));
 
         generateButton.setPreferredSize(new Dimension(200, 20));
-        generateButton.addActionListener(e -> checkPasswordAndRSA());
-        privatePlace.addActionListener(e -> choosePath("Private"));
-        //publicPlace.addActionListener(e -> ChoosePath("Public"));
+        generateButton.addActionListener(e -> checkPasswordAndGenerateRSA());
 
+        privatePlace.addActionListener(e -> choosePath("Private"));
+        // publicPlace.addActionListener(e -> choosePath("Public")); // Disabled
+
+        // Default paths
         privatePath = Paths.get(System.getProperty("user.home"), "Desktop").toString();
         publicPath = "";
 
         helpLabel.setPreferredSize(new Dimension(580, 20));
         helpLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         helpLabel.setVerticalAlignment(SwingConstants.BOTTOM);
-        helpLabel.setToolTipText("To generate a pair of 4096-bit RSA Keys you need to choose the" +
-                "location for both PRIVATE (left) and PUBLIC (right) keys with 'Change ... Location" +
-                " buttons, enter your 8-DIGIT PIN to the field and clicking 'Generate key pair'");
+        helpLabel.setToolTipText("To generate a 4096-bit RSA key pair, choose the locations for PRIVATE (left) and " +
+                "PUBLIC (right) keys, enter an 8-DIGIT PIN, and click 'Generate key pair'.");
 
+        // Back Button
         JButton backButton = new JButton("Back");
         JPanel tmpPan = new JPanel();
         tmpPan.add(backButton);
-
         backButton.addActionListener(e -> returnToMainPage());
 
-        //fileChooser.getSelectedFile();
+        // Add components to panel
         this.add(title);
         this.add(info);
         this.add(privatePane);
@@ -104,19 +117,21 @@ public class KeyGeneratorWindow extends JPanel {
         this.add(passwordField);
         this.add(generateButton);
         this.add(tmpPan);
-        //this.add(signButton);
         this.add(resultLabel);
         this.add(helpLabel);
     }
 
+    /**
+     * Opens a file chooser dialog to select a directory for storing keys.
+     * @param type "Private" for private key location, "Public" for public key location.
+     */
     private void choosePath(String type) {
         JFileChooser fileChooser = new JFileChooser();
-
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         fileChooser.showOpenDialog(this);
         File chosenFile = fileChooser.getSelectedFile();
-        if(chosenFile != null) {
+        if (chosenFile != null) {
             switch (type) {
                 case "Private":
                     privatePath = chosenFile.getAbsolutePath();
@@ -127,40 +142,41 @@ public class KeyGeneratorWindow extends JPanel {
                     publicInfo.setText(publicPath);
                     break;
             }
-        }
-        else {
+        } else {
             resultLabel.setForeground(Color.RED);
             resultLabel.setText("Please, choose a correct path!");
         }
     }
 
-    private void checkPasswordAndRSA() {
+    /**
+     * Validates the password and generates an RSA key pair.
+     */
+    private void checkPasswordAndGenerateRSA() {
         String password = String.valueOf(passwordField.getPassword());
         System.out.println(password);
-        if(password.length() == 8){
+
+        if (password.length() == 8) {
             try {
                 keyGeneratorBody.generatePair(password, privatePath, publicPath, keyFileName);
                 passwordField.setText("");
                 resultLabel.setForeground(Color.GREEN);
                 resultLabel.setText("The RSA key pair was successfully generated!");
-            }
-            catch (RuntimeException e) {
+            } catch (RuntimeException e) {
                 resultLabel.setForeground(Color.RED);
                 resultLabel.setText("<html>" + e.getLocalizedMessage() + "</html>");
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(null, e);
             }
-        }
-        else {
-
+        } else {
             resultLabel.setForeground(Color.RED);
-            resultLabel.setText("You must have an 8-DIGIT PIN!");
+            resultLabel.setText("You must enter an 8-DIGIT PIN!");
         }
     }
 
+    /**
+     * Returns to the main menu by switching the card layout.
+     */
     private void returnToMainPage() {
         parentLayout.show(cardPanel, "main");
     }
-
 }

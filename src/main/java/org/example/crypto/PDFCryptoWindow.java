@@ -7,6 +7,11 @@ import java.awt.*;
 import java.io.File;
 import java.util.Objects;
 
+/**
+ * PDFCryptoWindow provides a graphical interface for signing PDF files.
+ * Users can select an original file, specify the signed file location, enter a PIN,
+ * and scan for a private key to sign the document.
+ */
 public class PDFCryptoWindow extends JPanel {
 
     private final PDFCryptoBody pdfCrypto;
@@ -23,6 +28,12 @@ public class PDFCryptoWindow extends JPanel {
     private String keyPath = "None";
     private JLabel keyLabel;
 
+    /**
+     * Constructor to initialize the UI for PDF signing.
+     * @param cardLayout Parent CardLayout for navigation.
+     * @param cardPanel Parent JPanel container.
+     * @param keyFileName Name of the private key file to search for.
+     */
     public PDFCryptoWindow(CardLayout cardLayout, JPanel cardPanel, String keyFileName) {
         this.setSize(600, 600);
         this.parentLayout = cardLayout;
@@ -38,11 +49,15 @@ public class PDFCryptoWindow extends JPanel {
         Icon questionIcon = UIManager.getIcon("OptionPane.informationIcon");
         //Image img = ((ImageIcon) questionIcon).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
         //ImageIcon scaledIcon = new ImageIcon(img);
+
+        // Tooltip with instructions
         JLabel helpLabel = new JLabel(questionIcon);
 
+        // Result Label
         this.resultLabel = new JLabel();
         this.keyLabel = new JLabel(keyPath);
 
+        // Styling and Layout Adjustments
         title.setPreferredSize(new Dimension(600, 60));
         title.setFont(new Font("Arial", Font.BOLD, 20));
         title.setHorizontalAlignment(SwingConstants.CENTER);
@@ -121,7 +136,7 @@ public class PDFCryptoWindow extends JPanel {
         keyPanel.add(keyButton);
 
 
-        //fileChooser.getSelectedFile();
+        // Adding Components
         this.add(title);
         this.add(info);
         this.add(origPane);
@@ -138,6 +153,10 @@ public class PDFCryptoWindow extends JPanel {
         this.pdfCrypto = new PDFCryptoBody(4096, keyFileName);
     }
 
+    /**
+     * Handles choosing a file (original PDF) or a directory (signed file location).
+     * @param type "Original" for input PDF, "Signed" for output location.
+     */
     private void choosePath(String type) {
         JFileChooser fileChooser = new JFileChooser();
         if(type.equals("Original")) {
@@ -180,6 +199,10 @@ public class PDFCryptoWindow extends JPanel {
         }
     }
 
+    /**
+     * Checks if the key is available and signs the PDF.
+     * @throws Exception if signing fails.
+     */
     private void checkKeyAndSign() throws Exception {
         try {
             if(!keyPath.equals("None")) {
@@ -210,10 +233,16 @@ public class PDFCryptoWindow extends JPanel {
         }
     }
 
+    /**
+     * Navigates back to the main window.
+     */
     private void returnToMainPage() {
         parentLayout.show(cardPanel, "main");
     }
 
+    /**
+     * Attempts to locate the private key file.
+     */
     private void tryToFindKey() {
         keyPath = pdfCrypto.ScanForKey(keyFileName);
         keyLabel.setText(keyPath);

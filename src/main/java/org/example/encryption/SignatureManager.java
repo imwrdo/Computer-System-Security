@@ -12,10 +12,21 @@ import java.io.*;
 import java.security.*;
 import java.util.*;
 
+/**
+ * The SignatureManager class provides functionality for signing, verifying, and manipulating PDF documents.
+ * It implements the SignatureInterface and uses RSA cryptography for signing operations.
+ */
 public class SignatureManager implements SignatureInterface {
     private PrivateKey privateKey;
     private PDDocument doc;
 
+    /**
+     * Hashes the content of the PDF document using SHA-256.
+     *
+     * @param document The PDF document to hash.
+     * @return The SHA-256 hash of the document content.
+     * @throws Exception If there is an error during the hashing process.
+     */
     public byte[] getChosenHash(PDDocument document) throws Exception {
         PDPageTree pages = document.getPages();
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -28,6 +39,15 @@ public class SignatureManager implements SignatureInterface {
         return digest.digest();
     }
 
+    /**
+     * Signs the PDF document and saves the signed document to a new path.
+     *
+     * @param origPath The path to the original PDF.
+     * @param signedPath The path to save the signed PDF.
+     * @param privateRSA The private key used to sign the document.
+     * @return True if signing was successful, false otherwise.
+     * @throws Exception If there is an error during the signing process.
+     */
     public boolean signPDF(String origPath, String signedPath, PrivateKey privateRSA) throws Exception {
         privateKey = privateRSA;
         File filePDF = new File(origPath);
@@ -75,7 +95,13 @@ public class SignatureManager implements SignatureInterface {
         }
     }
 
-
+    /**
+     * Signs the hashed content of a document with the private key.
+     *
+     * @param content The content to sign.
+     * @return The signed content (digital signature).
+     * @throws IOException If an I/O error occurs during signing.
+     */
     @Override
     public byte[] sign(InputStream content) throws IOException {
         try {
@@ -109,6 +135,14 @@ public class SignatureManager implements SignatureInterface {
         }
     }
 
+    /**
+     * Verifies the signature of a signed PDF file.
+     *
+     * @param filePDF The PDF file to verify.
+     * @param publicRSA The public key used to verify the signature.
+     * @return True if the signature is valid, false otherwise.
+     * @throws Exception If there is an error during the verification process.
+     */
     public boolean verifyPDF(File filePDF, PublicKey publicRSA) throws Exception {
         try(PDDocument document = PDDocument.load(filePDF)) {
 
@@ -152,6 +186,12 @@ public class SignatureManager implements SignatureInterface {
         }
     }
 
+    /**
+     * Modifies one byte of the document's content to simulate corruption.
+     *
+     * @param filePDF The PDF file to modify.
+     * @throws Exception If an error occurs during the modification process.
+     */
     public void changeOneByte(File filePDF) throws Exception{
         String corrFile = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf(".")) + "_corrupted.pdf";
         try(PDDocument document = PDDocument.load(filePDF); FileOutputStream corrPDF = new FileOutputStream(corrFile)) {

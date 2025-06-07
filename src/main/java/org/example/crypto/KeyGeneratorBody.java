@@ -41,6 +41,7 @@ public class KeyGeneratorBody {
      * @param filename Destination file path.
      */
     private void writeToFile(byte[] key, String filename) {
+        System.out.println(filename);
         try (OutputStream out = new FileOutputStream(filename)) {
             // Writes the key bytes to the specified file
             out.write(key);
@@ -71,7 +72,7 @@ public class KeyGeneratorBody {
                 privatePath + "\\" + keyFileName);
 
         // Save the public key
-        writeToFile(rsaPair.getPublic().getEncoded(), publicPath + "\\publicKey");
+        writeToFile(rsaPair.getPublic().getEncoded(), publicPath + "publicKey");
 
         // Indicate successful key generation
         System.out.println("Generated");

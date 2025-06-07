@@ -181,7 +181,7 @@ public class SignatureManager implements SignatureInterface {
             }
         }
         catch(IOException e) {
-            throw new RuntimeException("Cannot load chosen file! Ensure that the" +
+            throw new RuntimeException("Cannot load chosen file! Ensure that the " +
                     "file was chosen correctly and exists", e);
         }
     }
@@ -193,7 +193,8 @@ public class SignatureManager implements SignatureInterface {
      * @throws Exception If an error occurs during the modification process.
      */
     public void changeOneByte(File filePDF) throws Exception{
-        String corrFile = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf(".")) + "_corrupted.pdf";
+        String corrFile = filePDF.getAbsolutePath().substring(0, filePDF.getAbsolutePath().lastIndexOf("."))
+                + "_corrupted.pdf";
         try(PDDocument document = PDDocument.load(filePDF); FileOutputStream corrPDF = new FileOutputStream(corrFile)) {
             Random rnd = new Random();
             PDPageTree pages = document.getPages();

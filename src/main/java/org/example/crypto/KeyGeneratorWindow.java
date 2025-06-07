@@ -157,6 +157,7 @@ public class KeyGeneratorWindow extends JPanel {
 
         if (password.length() == 8) {
             try {
+                System.out.println(privatePath + " " + publicPath);
                 keyGeneratorBody.generatePair(password, privatePath, publicPath, keyFileName);
                 passwordField.setText("");
                 resultLabel.setForeground(Color.GREEN);

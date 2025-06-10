@@ -1,7 +1,6 @@
 import org.example.encryption.AESCrypto;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.example.encryption.RSACrypto;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -12,6 +11,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -22,13 +23,12 @@ import static org.mockito.Mockito.verify;
 
 
 public class KeyTest {
-    private static final String aesParams = "AES/CFB/NoPadding";
+    private static String aesParams = "AES/CFB/NoPadding";
     @Mock
     private static AESCrypto aes;
     private static Random rnd;
-
     @BeforeAll
-    static void setUp() {
+    static void setUp(){
         aes = Mockito.spy(new AESCrypto(aesParams));
         rnd = new Random(12345);
     }
@@ -40,7 +40,7 @@ public class KeyTest {
      */
     @Test
     void CreationTest() {
-        Assertions.assertDoesNotThrow(() -> TestDataManager.GetKeys(false));
+            Assertions.assertDoesNotThrow(() -> TestDataManager.GetKeys(false));
     }
 
     /**
@@ -71,13 +71,8 @@ public class KeyTest {
     @Test
     void MixedKeyPairTest() {
         try {
-<<<<<<< Updated upstream
-            KeyPair keys = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
-            KeyPair keys2 = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
-=======
             KeyPair keys = TestDataManager.GenerateSeededKeyPair(4096, 12345);
             KeyPair keys2 = TestDataManager.GenerateSeededKeyPair(4096, 67890);
->>>>>>> Stashed changes
 
             String plainText = TestDataManager.GenerateRandomString(400);
             Cipher cipher = Cipher.getInstance("RSA");

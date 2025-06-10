@@ -1,9 +1,6 @@
 import org.example.encryption.RSACrypto;
 import org.example.encryption.SignatureManager;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -20,12 +17,10 @@ public class SignTest {
     @Mock
     private static SignatureManager sigManager;
     private static RSACrypto rsa;
-
     @BeforeAll
     static void setUp() {
         rsa = new RSACrypto();
     }
-
     @BeforeEach
     void RenewSignatureManager() {
         sigManager = Mockito.spy(new SignatureManager());
@@ -41,12 +36,12 @@ public class SignTest {
             KeyPair keys = rsa.getPair(4096);
 
             Assertions.assertAll(
-                    () -> Assertions.assertThrows(RuntimeException.class,
-                            () -> sigManager.signPDF(null,
-                                    "SomeSignedName.pdf", keys.getPrivate())),
-                    () -> Assertions.assertThrows(RuntimeException.class,
-                            () -> sigManager.signPDF(TestDataManager.GetPDF("PDF"),
-                                    null, keys.getPrivate()))
+                () ->Assertions.assertThrows(RuntimeException.class,
+                        () -> sigManager.signPDF(null,
+                                "SomeSignedName.pdf", keys.getPrivate())),
+                () ->Assertions.assertThrows(RuntimeException.class,
+                        () -> sigManager.signPDF(TestDataManager.GetPDF("PDF"),
+                                null, keys.getPrivate()))
             );
             verify(sigManager, times(0)).
                     changeOneByte(new File(TestDataManager.GetPathToSignTo()));
@@ -139,6 +134,7 @@ public class SignTest {
             KeyPair keys = rsa.getPair(4096);
 
 
+
             Assertions.assertAll(
                     () -> Assertions.assertTrue(sigManager.signPDF(TestDataManager.GetPDF("PDF"),
                             TestDataManager.GetPathToSignTo(), keys.getPrivate())),
@@ -146,14 +142,7 @@ public class SignTest {
             );
             verify(sigManager, times(1)).
                     changeOneByte(new File(TestDataManager.GetPathToSignTo()));
-<<<<<<< Updated upstream
-
-
         } catch (Exception e) {
-=======
-        }
-        catch (Exception e) {
->>>>>>> Stashed changes
             Assertions.fail(e);
         }
     }

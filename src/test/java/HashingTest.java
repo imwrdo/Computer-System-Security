@@ -12,7 +12,6 @@ import java.lang.reflect.Method;
 public class HashingTest {
     @Mock
     private static SignatureManager sigManager;
-
     @BeforeEach
     void RenewSignatureManager() {
         sigManager = Mockito.spy(new SignatureManager());
@@ -27,15 +26,14 @@ public class HashingTest {
 
         return hashMethod;
     }
-
     /**
      * Returns the hash of the base PDF or corrupted document
      */
     byte[] GetHash(boolean broken) throws Exception {
         try (PDDocument document = PDDocument.load(
-                new File(TestDataManager.GetPDF(broken ? "corrupted" : "PDF")))) {
+                new File(TestDataManager.GetPDF(broken? "corrupted" : "PDF")))) {
             Method hashMethod = GetHashMethod();
-            return (byte[]) hashMethod.invoke(sigManager, document);
+            return (byte[])hashMethod.invoke(sigManager, document);
         }
     }
 
@@ -59,14 +57,6 @@ public class HashingTest {
     @Test
     void HashSameContentMultipleTest() {
         try {
-<<<<<<< Updated upstream
-
-            byte[] hash1 = GetHash(false);
-            byte[] hash2 = GetHash(false);
-
-            Assertions.assertArrayEquals(hash1, hash2);
-        } catch (Exception e) {
-=======
             byte[][] hashes = new byte[20][];
             Assertions.assertAll(
                     () -> {
@@ -75,9 +65,7 @@ public class HashingTest {
                         for(int i = 1; i < 20; i++)
                             Assertions.assertArrayEquals(hashes[i-1], hashes[i]);
                     });
-        }
-        catch (Exception e) {
->>>>>>> Stashed changes
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -112,8 +100,7 @@ public class HashingTest {
                             () -> hashMethod.invoke(sigManager, null)),
                     () -> Assertions.assertEquals(32, ((byte[])hashMethod.invoke(sigManager, new PDDocument())).length)
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }

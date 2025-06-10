@@ -71,8 +71,13 @@ public class KeyTest {
     @Test
     void MixedKeyPairTest() {
         try {
+<<<<<<< Updated upstream
             KeyPair keys = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
             KeyPair keys2 = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
+=======
+            KeyPair keys = TestDataManager.GenerateSeededKeyPair(4096, 12345);
+            KeyPair keys2 = TestDataManager.GenerateSeededKeyPair(4096, 67890);
+>>>>>>> Stashed changes
 
             String plainText = TestDataManager.GenerateRandomString(400);
             Cipher cipher = Cipher.getInstance("RSA");

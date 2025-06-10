@@ -22,28 +22,47 @@ import java.util.Random;
  * Handling all the file creation and key generation logic in tests
  */
 public class TestDataManager {
+    //Main folder for test input and output data (generating automatically when tests start)
+    private static final String dataFolderPath = "Test_Data";
+    //Input and output files for unit tests (generating automatically)
+    private static final String inDataPath = dataFolderPath + "/In";
+    private static final String outDataPath = dataFolderPath + "/Out";
+
+
     //File paths of correct key pair
-    private static final String publicPath = "testInData/publicKey";
-    private static final String privatePath = "testInData/privateKey";
+    private static final String publicPath = inDataPath + "/publicKey";
+    private static final String privatePath = inDataPath + "/privateKey";
 
     //File paths of key pair with one changed bit each key
-    private static final String publicPathBroken = "testInData/publicKeyBroken";
-    private static final String privatePathBroken = "testInData/privateKeyBroken";
+    private static final String publicPathBroken = inDataPath + "/publicKeyBroken";
+    private static final String privatePathBroken = inDataPath + "/privateKeyBroken";
 
     //File paths of unsigned pdf, signed pdf and corrupted (changed body) signed pdf documents
-    private static final String pdfPath = "testInData/doc.pdf";
-    private static final String signedPath = "testInData/encrypted.pdf";
-    private static final String corruptedPath = "testInData/corrupted.pdf";
+    private static final String pdfPath = inDataPath + "/doc.pdf";
+    private static final String signedPath = inDataPath + "/encrypted.pdf";
+    private static final String corruptedPath = inDataPath + "/corrupted.pdf";
 
     //File path for generating file with wrong extension
-    private static final String wrongExtension = "testInData/someFile.txt";
+    private static final String wrongExtension = inDataPath + "/someFile.txt";
 
     //File path for creating signed document in SignTest
-    private static final String signedWrite = "testOutData/doc_encrypted.pdf";
+    private static final String signedWrite = outDataPath + "/doc_encrypted.pdf";
 
     //Seeded random and seed for key generation
     private static final Random rnd = new Random(12345);
     private static final Integer chosenRSASeed = 98563;
+
+    /**
+     * Generates (if not already present and complete) all the needed file structure for tests.
+     */
+    private synchronized static void CheckTestFolders() throws Exception{
+        if(!Files.exists(Path.of(dataFolderPath)))
+            Files.createDirectory(Path.of(dataFolderPath));
+        if(!Files.exists(Path.of(inDataPath)))
+            Files.createDirectory(Path.of(inDataPath));
+        if(!Files.exists(Path.of(outDataPath)))
+            Files.createDirectory(Path.of(outDataPath));
+    }
 
     /**
      * Generates a string of random symbols that can be represented in PDF (Times New Roman).
@@ -78,8 +97,14 @@ public class TestDataManager {
     /**
      * If not existed before - generates correct and broken seeded RSA keys of 4096-bit length.
      */
+<<<<<<< Updated upstream
     private synchronized static void GenerateTestKeys() throws Exception {
         if (!Files.exists(Path.of(publicPath)) || !Files.exists(Path.of(privatePath))) {
+=======
+    private synchronized static void GenerateTestKeys() throws Exception{
+
+        if(!Files.exists(Path.of(publicPath)) || !Files.exists(Path.of(privatePath))) {
+>>>>>>> Stashed changes
             KeyPair keys = GenerateSeededKeyPair(4096, chosenRSASeed);
 
             try (FileOutputStream publicStream = new FileOutputStream(publicPath);
@@ -156,8 +181,14 @@ public class TestDataManager {
      * Returns the file path to the file of the wrong extension.
      * Generates the new file if there is no such existing.
      */
+<<<<<<< Updated upstream
     public static String GetWrongExtension() throws Exception {
         if (!Files.exists(Path.of(wrongExtension)))
+=======
+    public static String GetWrongExtension() throws Exception{
+        CheckTestFolders();
+        if(!Files.exists(Path.of(wrongExtension)))
+>>>>>>> Stashed changes
             GenerateWrongExtension();
         return wrongExtension;
     }
@@ -170,7 +201,12 @@ public class TestDataManager {
      * @return The key pair needed.
      */
     public static KeyPair GetKeys(boolean broken) throws Exception {
+<<<<<<< Updated upstream
         if (!Files.exists(Path.of(publicPath)) ||
+=======
+        CheckTestFolders();
+        if(!Files.exists(Path.of(publicPath)) ||
+>>>>>>> Stashed changes
                 !Files.exists(Path.of(privatePath)) || !Files.exists(Path.of(publicPathBroken)) ||
                 !Files.exists(Path.of(privatePathBroken))) {
             GenerateTestKeys();
@@ -198,6 +234,7 @@ public class TestDataManager {
      * @return The PDF document needed.
      */
     public static String GetPDF(String type) throws Exception {
+<<<<<<< Updated upstream
         switch (type) {
             case "PDF":
                 if (!Files.exists(Path.of(pdfPath)))
@@ -209,11 +246,28 @@ public class TestDataManager {
                     GenerateVTestPDF();
                 return signedPath;
             case "corrupted":
+=======
+        CheckTestFolders();
+        return switch (type) {
+            case "PDF" -> {
+                if (!Files.exists(Path.of(pdfPath)))
+                    GenerateSTestPDF();
+
+                yield pdfPath;
+            }
+            case "signed" -> {
+                if (!Files.exists(Path.of(signedPath)))
+                    GenerateVTestPDF();
+                yield signedPath;
+            }
+            case "corrupted" -> {
+>>>>>>> Stashed changes
                 if (!Files.exists(Path.of(corruptedPath)))
                     GenerateVTestPDF();
-                return corruptedPath;
-        }
-        return type;
+                yield corruptedPath;
+            }
+            default -> type;
+        };
     }
 
     /**

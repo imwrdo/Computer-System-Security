@@ -146,9 +146,14 @@ public class SignTest {
             );
             verify(sigManager, times(1)).
                     changeOneByte(new File(TestDataManager.GetPathToSignTo()));
+<<<<<<< Updated upstream
 
 
         } catch (Exception e) {
+=======
+        }
+        catch (Exception e) {
+>>>>>>> Stashed changes
             Assertions.fail(e);
         }
     }

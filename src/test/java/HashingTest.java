@@ -57,14 +57,27 @@ public class HashingTest {
      * Must end successfully to pass the test
      */
     @Test
-    void HashSameTwiceTest() {
+    void HashSameContentMultipleTest() {
         try {
+<<<<<<< Updated upstream
 
             byte[] hash1 = GetHash(false);
             byte[] hash2 = GetHash(false);
 
             Assertions.assertArrayEquals(hash1, hash2);
         } catch (Exception e) {
+=======
+            byte[][] hashes = new byte[20][];
+            Assertions.assertAll(
+                    () -> {
+                        for(int i = 0; i < 20; i++)
+                            hashes[i] = GetHash(false);
+                        for(int i = 1; i < 20; i++)
+                            Assertions.assertArrayEquals(hashes[i-1], hashes[i]);
+                    });
+        }
+        catch (Exception e) {
+>>>>>>> Stashed changes
             Assertions.fail(e);
         }
     }
@@ -86,5 +99,22 @@ public class HashingTest {
         }
     }
 
-
+    /**
+     * Tests for Hashing function work with null and empty documents.
+     * Must first case must throw error and second give a 32-byte hash to pass the test
+     */
+    @Test
+    void NullAndEmptyDocumentHashTest() {
+        try {
+            Method hashMethod = GetHashMethod();
+            Assertions.assertAll(
+                    () -> Assertions.assertThrows(Exception.class,
+                            () -> hashMethod.invoke(sigManager, null)),
+                    () -> Assertions.assertEquals(32, ((byte[])hashMethod.invoke(sigManager, new PDDocument())).length)
+            );
+        }
+        catch (Exception e) {
+            Assertions.fail(e);
+        }
+    }
 }

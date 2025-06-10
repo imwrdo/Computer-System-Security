@@ -66,6 +66,10 @@ privateKey
 publicKey
 
 # Test data (can be generated automatically)
+<<<<<<< Updated upstream
 testInData
 testOutData
 .idea/
+=======
+Test_Data
+>>>>>>> Stashed changes

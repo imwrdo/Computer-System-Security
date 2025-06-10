@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 public class HashingTest {
     @Mock
     private static SignatureManager sigManager;
+
     @BeforeEach
     void RenewSignatureManager() {
         sigManager = Mockito.spy(new SignatureManager());
@@ -26,15 +27,15 @@ public class HashingTest {
 
         return hashMethod;
     }
+
     /**
      * Returns the hash of the base PDF or corrupted document
      */
     byte[] GetHash(boolean broken) throws Exception {
         try (PDDocument document = PDDocument.load(
-                new File(TestDataManager.GetPDF(broken? "corrupted" : "PDF"))))
-        {
+                new File(TestDataManager.GetPDF(broken ? "corrupted" : "PDF")))) {
             Method hashMethod = GetHashMethod();
-            return (byte[])hashMethod.invoke(sigManager, document);
+            return (byte[]) hashMethod.invoke(sigManager, document);
         }
     }
 
@@ -46,8 +47,7 @@ public class HashingTest {
     void HashDoesNotThrowTest() {
         try {
             Assertions.assertDoesNotThrow(() -> GetHash(false));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -64,8 +64,7 @@ public class HashingTest {
             byte[] hash2 = GetHash(false);
 
             Assertions.assertArrayEquals(hash1, hash2);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -82,8 +81,7 @@ public class HashingTest {
             byte[] hash2 = GetHash(true);
 
             Assertions.assertNotEquals(hash1, hash2);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }

@@ -1,6 +1,7 @@
 import org.example.encryption.AESCrypto;
-import org.example.encryption.RSACrypto;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
@@ -11,8 +12,6 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import java.security.KeyFactory;
 import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -23,12 +22,13 @@ import static org.mockito.Mockito.verify;
 
 
 public class KeyTest {
-    private static String aesParams = "AES/CFB/NoPadding";
+    private static final String aesParams = "AES/CFB/NoPadding";
     @Mock
     private static AESCrypto aes;
     private static Random rnd;
+
     @BeforeAll
-    static void setUp(){
+    static void setUp() {
         aes = Mockito.spy(new AESCrypto(aesParams));
         rnd = new Random(12345);
     }
@@ -40,7 +40,7 @@ public class KeyTest {
      */
     @Test
     void CreationTest() {
-            Assertions.assertDoesNotThrow(() -> TestDataManager.GetKeys(false));
+        Assertions.assertDoesNotThrow(() -> TestDataManager.GetKeys(false));
     }
 
     /**
@@ -59,8 +59,7 @@ public class KeyTest {
 
             cipher.init(Cipher.DECRYPT_MODE, keys.getPublic());
             Assertions.assertArrayEquals(plainText.getBytes(), cipher.doFinal(encrypted));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -72,8 +71,8 @@ public class KeyTest {
     @Test
     void MixedKeyPairTest() {
         try {
-            KeyPair keys = TestDataManager.GetKeys(false);
-            KeyPair keys2 = TestDataManager.GetKeys(false);
+            KeyPair keys = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
+            KeyPair keys2 = TestDataManager.GenerateSeededKeyPair(4096, 12345/67890);
 
             String plainText = TestDataManager.GenerateRandomString(400);
             Cipher cipher = Cipher.getInstance("RSA");
@@ -90,8 +89,7 @@ public class KeyTest {
                     () -> Assertions.assertThrows(Exception.class, () -> cipher.doFinal(encrypted)),
                     () -> Assertions.assertThrows(Exception.class, () -> cipher2.doFinal(encrypted2))
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -125,8 +123,7 @@ public class KeyTest {
                     () -> Assertions.assertThrows(InvalidKeySpecException.class,
                             () -> keyFactory.generatePublic(keySpec2))
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -154,8 +151,7 @@ public class KeyTest {
 
             cipher.init(Cipher.DECRYPT_MODE, keys.getPublic());
             Assertions.assertThrows(BadPaddingException.class, () -> cipher.doFinal(encrypted));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
@@ -182,8 +178,7 @@ public class KeyTest {
             byte[] decryptedPrivate = aes.decrypt(enctyptedPrivate, aesSecret);
             Assertions.assertArrayEquals(keys.getPrivate().getEncoded(), decryptedPrivate);
             verify(aes, times(1)).restoreIv(IV);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }

@@ -11,6 +11,7 @@ import java.security.spec.InvalidKeySpecException;
 public class VerifyTest {
     @Mock
     private static SignatureManager sigManager;
+
     @BeforeEach
     void smallSetUp() {
         sigManager = Mockito.spy(new SignatureManager());
@@ -51,7 +52,7 @@ public class VerifyTest {
      * Must throw an error to pass the test
      */
     @Test
-    void VerifyWrongExtension(){
+    void VerifyWrongExtension() {
         Assertions.assertThrows(RuntimeException.class,
                 () -> sigManager.verifyPDF(new File(TestDataManager.GetWrongExtension()),
                         TestDataManager.GetKeys(false).getPublic()));
@@ -70,11 +71,10 @@ public class VerifyTest {
             Assertions.assertAll(
                     () -> Assertions.assertThrows(InvalidKeySpecException.class, () ->
                             sigManager.verifyPDF(new File(TestDataManager.GetPDF("signed")),
-                                TestDataManager.GetKeys(true).getPublic())),
+                                    TestDataManager.GetKeys(true).getPublic())),
                     () -> Assertions.assertFalse(verifiedWithInappropriateKey)
             );
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Assertions.fail(e);
         }
     }
